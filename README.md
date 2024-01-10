@@ -1,0 +1,1 @@
+Scripts for analyses in: Taylor, K. L., Wade, E. J., Wells, M. M., & Henry, C. S. (2023). Genomic regions underlying the species‐specific mating songs of green lacewings. Insect Molecular Biology, 32(2), 79-85.
