@@ -1,0 +1,101 @@
+```{r}
+library(tidyverse)
+library(gridExtra)
+library(grid)
+theme_set(theme_bw(base_size=14))
+theme_update(panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  plot.title = element_text(),
+  axis.text.x = element_blank(),
+  axis.ticks.x = element_blank(),
+  panel.margin = unit(0, "lines"),
+  strip.background = element_blank(),
+  panel.border = element_blank(),
+  legend.position = "none", 
+  strip.text.x = element_text(margin = margin(0,0,0,0, "cm")))
+
+chrom_names <- c(
+  'NC_058337.1'="1",
+  'NC_058338.1'="2",
+  'NC_058339.1'="3",
+  'NC_058340.1'="4",
+  'NC_058341.1'="5",
+  'NC_058342.1'="6")
+
+```
+
+# Chr lengths
+1: 139,979,878
+2: 100,744,152
+3: 94,407,144
+4: 77,476,099
+5: 76,427,138
+X: 38,618,709
+
+
+```{r}
+
+FST_adam_plor <- read.table("~/Documents/Song_Genes_Paper/Selection/weirfst_plora_vs_adam.windowed.weir.fst", header = T)
+
+```
+
+```{r}
+assoc <- read.table ("~/Documents/Song_Genes_Paper/Selection/song_family.assoc.txt", header = T)
+
+assoc <- assoc %>%
+  mutate(corrected_plrt = p_lrt * 9733)
+
+```
+
+```{r}
+#jpeg("~/Documents/Song_Genes_Paper/Rqtl/gemma_betalmm_plot",  width = 12, height = 8, units = "cm", res = 700)
+assoc %>%
+  filter(chr == "NC_058337.1" | chr == "NC_058338.1" | chr == "NC_058339.1" |chr == "NC_058340.1" |chr == "NC_058341.1" |chr == "NC_058342.1") %>%
+  ggplot(aes(y = abs(beta), x = ps, color = chr)) +
+  geom_point(cex = 2) +
+  scale_color_manual(values = rep(c("grey0", "grey44"), times = 3)) +
+  facet_wrap(~chr, nrow = 1, strip.position="bottom", scales = "free_x",labeller=as_labeller(chrom_names)) +
+  labs(y = "Effect size", x = "Chromosome", tag = "A") +
+  geom_point(data = assoc %>% filter(p_lrt < 0.01/9733), color="red", cex = 2) 
+#dev.off()
+```
+
+
+```{r}
+FST_filter <- subset(FST_adam_plor, N_VARIANTS > 5)
+
+FST_filter$ztrans <- scale(FST_filter$MEAN_FST, center = TRUE, scale = TRUE) #ztransformation
+
+hist(FST_filter$ztrans, breaks = 100)
+
+hi_wcFST1 <- subset(FST_filter, ztrans > 3)
+print(min(hi_wcFST1$MEAN_FST))
+```
+
+```{r}
+hi_wcFST1 %>%
+  arrange(CHROM, BIN_START)
+```
+
+```{r}
+#jpeg("~/Documents/Song_Genes_Paper/Rqtl/FST_8.12.22.jpg",  width = 12, height = 6, units = "cm", res = 700)
+FST_adam_plor %>%
+  filter(CHROM == "NC_058337.1" | CHROM == "NC_058338.1" | CHROM == "NC_058339.1" |CHROM == "NC_058340.1" |CHROM == "NC_058341.1" |CHROM == "NC_058342.1") %>%
+  filter(N_VARIANTS > 5) %>%
+  filter(MEAN_FST > 0) %>%
+  ggplot(aes(y = MEAN_FST , x = BIN_START/1000000, color = CHROM)) +
+  geom_point(cex = 1) +
+  coord_cartesian(ylim = c(0,0.7)) +
+  geom_hline(yintercept = 0, color = "grey", cex = 0.1, alpha = 0.5) +
+  geom_hline(yintercept = 0.1, color = "grey", cex = 0.1, alpha = 0.5) +
+  geom_hline(yintercept = 0.2, color = "grey", cex = 0.1, alpha = 0.5) +
+  geom_hline(yintercept = 0.3, color = "grey", cex = 0.1, alpha = 0.5) +
+  geom_hline(yintercept = 0.4, color = "grey", cex = 0.1, alpha = 0.5) +
+  geom_hline(yintercept = 0.5, color = "grey", cex = 0.1, alpha = 0.5) +
+  geom_hline(yintercept = 0.6, color = "grey", cex = 0.1, alpha = 0.5) +
+  geom_hline(yintercept = 0.435, color = "red", linetype = "dashed") +
+  labs(x="", y = expression(Mean~F[ST]), tag = "B") +
+  scale_color_manual(values = rep(c("grey0", "grey44"), times = 3)) +
+  facet_wrap(~CHROM, nrow = 1, strip.position="bottom", scales = "free_x",labeller=as_labeller(chrom_names)) 
+#dev.off()
+```

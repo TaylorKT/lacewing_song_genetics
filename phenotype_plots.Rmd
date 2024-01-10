@@ -1,0 +1,60 @@
+```{r}
+library(tidyverse)
+library(gridExtra)
+library(grid)
+theme_set(theme_bw(base_size=14))
+theme_update(panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  plot.title = element_text(),
+  panel.margin = unit(0, "lines"),
+  strip.background = element_blank(),
+  panel.border = element_blank(),
+  legend.position = "none", 
+  strip.text.x = element_text(margin = margin(0,0,0,0, "cm")))
+```
+
+We read in the CSV files with phenotype data for parents, F1s, and F2s
+
+```{r}
+pxa <- read.csv("~/Documents/Song_Genes_Paper/F2_crosses/csv_data/pxa_phenotype_updated.csv", header = TRUE)
+```
+
+
+```{r}
+plora<-as.data.frame(pxa$plorabunda)
+adamsi<-as.data.frame(pxa$adamsi)
+pxa_f1<-as.data.frame(pxa$f1)
+pxa_f2<-as.data.frame(pxa$f2)
+```
+
+```{r}
+mean(pxa$plorabunda, na.rm = TRUE)
+ mean(pxa$adamsi, na.rm = TRUE)
+ mean(pxa$f1, na.rm = TRUE)
+ sd(pxa$f1, na.rm = TRUE)
+ mean(pxa$f2, na.rm = TRUE)
+ sd(pxa$f2, na.rm = TRUE)
+```
+
+```{r}
+
+#jpeg("~/Documents/Song_Genes_Paper/Rqtl/phenotype_plot.jpg",  width = 12, height = 12, units = "cm", res = 700)
+pxa_pars<-ggplot() +
+  geom_histogram(aes(x=pxa$plorabunda), fill = "goldenrod1", binwidth=0.1) +
+  geom_histogram(aes(x=pxa$adamsi), fill = "mediumpurple3", binwidth=0.1) +
+  geom_vline(xintercept = 3.38808, colour="black", linetype = "longdash") +
+  geom_vline(xintercept = 1.1736, colour="black", linetype = "longdash") +
+  xlim(0.8,4) + ylim(0,15)+ labs(y = "Parents", x= "")
+pxa_f1s<-ggplot() +
+  geom_histogram(aes(x=pxa$f1), binwidth=0.1) +
+  xlim(0.8,4) + ylim(0,20) + labs(y = expression(F[1]), x= "") 
+pxa_f2s<-ggplot() +
+  geom_histogram(aes(x=pxa$f2), binwidth=0.1) +
+  xlim(0.8,4) + ylim(0,20)+ labs(y = expression(F[2]), x= "Volley period (seconds)")
+
+grid.arrange(pxa_pars,pxa_f1s,pxa_f2s,nrow=3,heights=c(0.3, 0.3, 0.39))
+
+#dev.off()
+```
+
+

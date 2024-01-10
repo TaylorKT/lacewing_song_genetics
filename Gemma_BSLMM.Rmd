@@ -1,0 +1,40 @@
+```{r}
+library(tidyverse)
+```
+
+# Read in all replicate hyperparameter runs
+
+```{r}
+setwd("~/Documents/Song_Genes_Paper/Gemma/")
+files <- list.files(pattern = "*.hyp.txt")
+file_names <- gsub("[.hyp.txt]", "", files)
+
+for (i in 1:length(files)) {
+assign(paste(file_names[i]), read.table(paste( "~/Documents/Song_Genes_Paper/Gemma/",files[i], sep = ""), header = TRUE)) 
+}
+```
+
+# Merge replicate runs
+
+```{r}
+song <- do.call("rbind",mget(ls(pattern = "^song_famil*")))
+```
+
+## Calculate mean and 95% CI for each treatment and hyperparameter
+
+```{r}
+colMeans(song)
+sapply(song, quantile, probs=c(0.025, 0.975))
+
+```
+
+```{r}
+plot(density(song$pve), type="l", ylab="pve", main="pve", col = "black")
+```
+
+```{r}
+plot(density(song$pge), type="l", ylab="pve", main="pge", col = "black")
+```
+
+
+

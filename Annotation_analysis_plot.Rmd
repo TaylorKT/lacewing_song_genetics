@@ -1,0 +1,102 @@
+
+```{r}
+library(tidyverse)
+library(gggenes)
+
+theme_set(theme_bw(base_size=14))
+theme_update(panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  plot.title = element_text(),
+  axis.text.x = element_blank(),
+  axis.ticks.x = element_blank(),
+  panel.margin = unit(0, "lines"),
+  strip.background = element_blank(),
+  panel.border = element_blank(),
+  legend.position = "none", 
+  strip.text.x = element_text(margin = margin(0,0,0,0, "cm")))
+
+```
+# Read in annotation files
+
+```{r}
+proteins <-read.csv("~/Documents/Song_Genes_Paper/Annotation/proteins_ChrCarn1.csv") 
+annotations <- read.csv("~/Documents/Song_Genes_Paper/Annotation/final_annotations_no_contam_lvl0.csv")
+
+protein_annotations <- merge(proteins, annotations, by.x = "Protein.product", by.y = "Query.Sequence")
+```
+
+
+```{r}
+EggNOG_GO_0045433 <- subset(protein_annotations, grepl("GO:0045433", protein_annotations$EggNOG.GO.Biological))
+
+UniProt_GO_0045433 <- subset(protein_annotations, grepl("GO:0045433", protein_annotations$UniProt.GO.Biological))
+
+
+GO_0045433 <-rbind(UniProt_GO_0045433, EggNOG_GO_0045433) 
+GO_0045433 <- GO_0045433[!duplicated(GO_0045433), ]
+
+```
+	
+```{r}
+write.csv(GO_0045433 %>%
+  select(Accession, Start, Stop, Protein.product, Protein.Name, Description, EggNOG.Predicted.Gene, EggNOG.Description) %>%
+  arrange(Accession, Start), "~/Desktop/GO_0045433.csv")
+```
+
+```{r}
+protein_annotations %>%
+  filter(X.Name == "chromosome 1" & Start > 77996716 & Stop < 107628114) %>%
+  filter(grepl("GO:0007619", EggNOG.GO.Biological))
+```
+
+```{r}
+GO_0045433 <-read.csv("~/Documents/Song_Genes_Paper/Annotation/GO_0045433.csv") 
+```
+
+
+```{r}
+GO_0045433 %>%
+  group_by(Accession) %>%
+  summarize(n=n())
+
+```
+
+
+# Chr lengths
+1: 139,979,878
+2: 100,744,152
+3: 94,407,144
+4: 77,476,099
+5: 76,427,138
+X: 38,618,709
+
+# Make plots of gene annotations
+
+```{r}
+#jpeg("~/Documents/Song_Genes_Paper/Annotation/gene_plot_chr5_8.12.22.jpg", width = 4, height = 4, units = "cm", res = 700)
+GO_0045433 %>%
+  filter(Accession == 1) %>%
+ggplot(aes(xmin = Start/1000000, xmax = Stop/1000000, y = "")) +
+  geom_gene_arrow(size = 1, show.legend = FALSE) +
+  scale_fill_brewer(palette = "Set3") +
+  labs(y="", x = "", tag = "") +
+  xlim(0, 139979878/1000000) + 
+  theme_genes() #+
+  #scale_x_continuous(breaks = seq(from = 0, to = 40, by = 10))
+  #theme_update(axis.text.y=element_blank(),
+      #  axis.ticks.x=element_blank())
+  #facet_wrap(~Accession, scales = "free", ncol = 6)
+#dev.off()
+```
+
+theme_update(panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  plot.title = element_text(),
+  axis.text.y = element_blank(),
+  panel.margin = unit(0, "lines"),
+  strip.background = element_blank(),
+  panel.border = element_blank(),
+  legend.position = "none", 
+  strip.text.x = element_text(margin = margin(0,0,0,0, "cm")))
+
+

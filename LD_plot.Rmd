@@ -1,0 +1,59 @@
+
+
+```{r}
+library(tidyverse)
+library(gridExtra)
+library(grid)
+
+theme_set(theme_bw(base_size=14))
+theme_update(panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  plot.title = element_text(),
+  panel.margin = unit(0, "lines"),
+  strip.background = element_blank(),
+  strip.text.x = element_text(margin = margin(0,0,0,0, "cm")))
+```
+
+
+```{r}
+LD<- read.table("~/Documents/Song_Genes_Paper/LD/plink.ld", header=T) %>%
+  as.data.frame() %>%
+  mutate(snp_distance = BP_B - BP_A)
+  
+```
+
+# Summarize LD mean by CHR
+```{r}
+LD %>%
+  group_by(CHR_A) %>%
+  summarize(mean_ld = mean(R2), median=median(R2), min=min(BP_A), max=max(BP_A))
+```
+
+# Bin LD for plotting
+
+```{r}
+LD$bin <- cut(LD$snp_distance,breaks=seq(from=min(LD$snp_distance)-1,to=max(LD$snp_distance)+1,by=10000000)) 
+
+LD <- LD %>% 
+  mutate(start=as.integer(str_extract(str_replace_all(bin,"[\\(\\)\\[\\]]",""),"^[0-9-e+.]+")))
+```
+
+```{r}
+LD_summary <- LD %>% 
+  group_by(CHR_A, start) %>%
+  summarise(mean=mean(R2),median=median(R2),n = n())
+```
+
+
+```{r}
+#jpeg("~/Documents/Song_Genes_Paper/Rqtl/LD_plot_wide.jpg", width = 12, height = 4, units = "cm", res = 700)
+LD_summary %>%
+  filter(CHR_A == "NC_058337.1" | CHR_A == "NC_058338.1"| CHR_A == "NC_058339.1"| CHR_A == "NC_058340.1"| CHR_A == "NC_058341.1"| CHR_A == "NC_058342.1") %>%
+  filter(n > 5000) %>%
+  ggplot(aes(x = start/1000000, y = mean, color = CHR_A,  linetype= CHR_A)) +
+  geom_line() +
+  labs(y=expression(R^2), x = "Distance (Mb)") +
+  scale_color_manual(name = "Chromosome", labels=c(1:6),values=c("red","red","black","black","black","black"), guide = "none")+
+  scale_linetype_manual(name = "Chromosome", labels=c(1:6),values=c(1:6))
+#dev.off()
+```
